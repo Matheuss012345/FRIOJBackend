@@ -24,7 +24,7 @@ public class FriojspringApplication {
 		config.addAllowedMethod("POST");
 		config.addAllowedMethod("GET");
 		config.addAllowedMethod("PUT");
-		config.addAllowedMethod("DEETE");
+		config.addAllowedMethod("DELETE");
 		config.addAllowedHeader("*");
 		source.registerCorsConfiguration("/**", config);
 		return new CorsFilter(source);

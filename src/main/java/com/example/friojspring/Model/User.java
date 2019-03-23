@@ -1,24 +1,35 @@
 package com.example.friojspring.Model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import com.example.friojspring.Helpers.Patterns;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import com.example.friojspring.Helpers.*;
+//@JsonIgnoreProperties(value={ "money" }, allowGetters=true)
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name="user")
+//@JsonIgnoreProperties(value={ "password","enabled","email","firstName","lastName" }, allowSetters=false)
 public class User implements Serializable{
 	
 	@Id
@@ -44,12 +55,15 @@ public class User implements Serializable{
 	@Email
 	private String email;
 	
+	//@JsonProperty(access = Access.READ_ONLY)
 	@Column(name="password")
 	private String password;
 	
+	@JsonIgnore
 	@Column(name="enabled")
 	private boolean enabled;
 	
+	@JsonIgnore
 	@Column(name="phone_number")
 	private String phoneNumber;
 	
@@ -58,7 +72,21 @@ public class User implements Serializable{
 	
 	@Column(name="role")
 	private String role;
+	
+	@JsonIgnore
+	@ManyToMany(mappedBy="users")
+	private Set<Course> courses = new HashSet<>();
+	
 
+	@JsonIgnore
+	@ManyToMany(mappedBy = "teamMembers")
+	private Set<Team> teams = new HashSet<>();
+	
+	@JsonIgnore
+	@OneToMany(mappedBy = "teamCaptain")
+	private List<Team> captainedTeams = new ArrayList<>();
+
+	
 	
 	public User(String username, String firstName, String lastName, String email, String password, boolean enabled,
 			String phoneNumber, Date createdDate) {
@@ -188,6 +216,29 @@ public class User implements Serializable{
 		this.username = username;
 	}
 
+	public Set<Course> getCourses() {
+		return courses;
+	}
+
+	public void setCourses(Set<Course> courses) {
+		this.courses = courses;
+	}
+
+	public Set<Team> getTeams() {
+		return teams;
+	}
+
+	public void setTeams(Set<Team> teams) {
+		this.teams = teams;
+	}
+	
+	public List<Team> getCaptainedTeams() {
+		return captainedTeams;
+	}
+
+	public void setCaptainedTeams(List<Team> captainedTeams) {
+		this.captainedTeams = captainedTeams;
+	}
 
 	@Override
 	public String toString() {
@@ -195,6 +246,7 @@ public class User implements Serializable{
 				+ ", email=" + email + ", password=" + password + ", enabled=" + enabled + ", phoneNumber="
 				+ phoneNumber + ", createdDate=" + createdDate + ", role=" + role + "]";
 	}
+	
 	
 	
 

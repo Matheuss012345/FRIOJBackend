@@ -2,11 +2,18 @@ package com.example.friojspring.Controllers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.securityContext;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.ZipFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -39,6 +46,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.friojspring.Domain.UserDTO;
 import com.example.friojspring.Exceptions.UnauthorizedException;
+import com.example.friojspring.Helpers.Converters;
+import com.example.friojspring.Helpers.ZipHelper;
+import com.example.friojspring.Model.TestCase;
 import com.example.friojspring.Model.Problem;
 import com.example.friojspring.Model.User;
 import com.example.friojspring.NonEntities.UserProblem;
@@ -64,29 +74,66 @@ public class ProblemController {
 	}
 	
 	@PostMapping(value="/addProblem" )
-	public ResponseEntity<String> addProblem(@RequestPart("pdf") MultipartFile pdf,
-			@RequestPart("input") MultipartFile input,@RequestPart("output") MultipartFile output,
-			@RequestParam("name") String name, @RequestParam("timelimit") String timelimit/*,
-			@RequestParam("hidden") boolean hidden*/){
+	public ResponseEntity<String> addProblem(/*@RequestPart("pdf") MultipartFile pdf,*/
+			@RequestPart("input") MultipartFile input,/*@RequestPart("output") MultipartFile output,*/
+			@RequestParam("name") String name/*, @RequestParam("timelimit") String timelimit,
+			@RequestParam("hidden") boolean hidden*/) throws IOException{
 	
-		
-		try {
-			System.out.println(output.getBytes());
+        try {
+        	File zippedFile = Converters.convert(input);
+        	String fileName=zippedFile.getName().substring(0, zippedFile.getName().length()-4);
+        	String unzippedFileLocation="temp/"+fileName;
+        	ZipHelper.extractFolder(zippedFile.getAbsolutePath(),unzippedFileLocation);
+        	
+        	boolean correctFormat = ZipHelper.checkFormatOfProblemDirectory(unzippedFileLocation);
+        	File unzippedProblemFile = new File(unzippedFileLocation);
+        	
+        	File inputFolder = new File(unzippedProblemFile.getAbsolutePath()+"/input");
+        	File outputFolder = new File(unzippedProblemFile.getAbsolutePath()+"/output");
+        	
+
+        	Problem p = new Problem(name, 100);
+        	
+        	String[] inputFileNames = inputFolder.list();
+        	String[] outputFileNames = outputFolder.list();
+        	
+        	ArrayList<TestCase> testCases = new ArrayList<>();
+        	for (int i = 0; i < outputFileNames.length; i++) {
+				testCases.add(new TestCase(inputFileNames[i],outputFileNames[i], p));
+			}
+
+        	p.setTestCases(testCases);
+        	p=problemService.save(p);
+        	
+        	zippedFile.delete(); //delete zipFile
+        	String newDirectory = "Problems/"+p.getId();
+        	unzippedProblemFile.renameTo(new File(newDirectory)); //move from temp to problems
+        	unzippedProblemFile=new File(newDirectory);
+        	//renaming pdfFile
+        	String pdfFileName=".pdf";
+        	for (File file : unzippedProblemFile.listFiles()) {
+				if(file.getName().endsWith(".pdf")) {
+					pdfFileName=file.getName();
+				}
+			}
+        	File pdfFile = new File(newDirectory+"/"+pdfFileName);
+        	pdfFile.renameTo(new File(newDirectory+"/"+p.getId()+".pdf"));
+        	
+		} catch (IOException e) {
 			
-			
-			Problem problem = new Problem(name, Long.parseLong(timelimit), /*hidden*/false, pdf.getBytes(), input.getBytes(), output.getBytes());
-			problemService.save(problem);
-			
-			return new ResponseEntity<String>(HttpStatus.OK);
-		}catch(Exception e) {
-			throw new UnauthorizedException(e.getMessage());
+			e.printStackTrace();
 		}
+		
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 	
+	
 	@RequestMapping(value = "/pdf/problem{problemId}.pdf" , method=RequestMethod.GET)
-	public ResponseEntity<byte[]> getPdfFile(@PathVariable("problemId") long problemId) throws FileNotFoundException {
+	public ResponseEntity<byte[]> getPdfFile(@PathVariable("problemId") long problemId) throws IOException {
 
-		byte[] res=problemService.getPdf(problemId);
+		
+		//byte[] res=problemService.getPdf(problemId);
+		byte[] res = Files.readAllBytes(new File("Problems/"+problemId+"/"+problemId+".pdf").toPath());
 		
 	    HttpHeaders responseHeaders = new HttpHeaders();
 	    responseHeaders.set("charset", "utf-8");
@@ -141,9 +188,9 @@ public class ProblemController {
 		//String username=SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = new User();
 		user.setUsername("Matheuss");
-		Pageable pgb = new PageRequest(1,4);
+		Pageable pgb = new PageRequest(0,10);
 		List<UserProblem> problems=problemService.getVisibleUserProblems(user, pgb);
-
+		//problems=problemService.getAllProblemRowsForUser(user);
 		
 		return new ResponseEntity<List<UserProblem>>(problems,HttpStatus.OK);
 	}

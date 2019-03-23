@@ -1,5 +1,6 @@
 package com.example.friojspring.Repositories;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +23,7 @@ public interface ProblemRepository extends JpaRepository<Problem,Long>{
 	Page<Problem> findAll(Pageable pageable);
 	Optional<Problem> findById(Long id);
 	
+	
 	//----------------PDF/INPUT/OUTPUT
 	@Query(value="SELECT pdf FROM problem p WHERE p.id=:id" , nativeQuery=true)
 	byte[] findPdfById(@Param("id")long id);
@@ -42,7 +44,7 @@ public interface ProblemRepository extends JpaRepository<Problem,Long>{
 	@Query(value="SELECT DISTINCT problem_id FROM submission s JOIN user u on u.id=s.user_id "
 		    	+ "JOIN result r on r.id=s.result_id "
 			    + "WHERE u.username=:username AND r.code='AC'" , nativeQuery=true)
-	Set<Long> findIdsOfAllSolvedProblemsOfUser(@Param("username")String username);
+	List<BigInteger> findIdsOfAllSolvedProblemsOfUser(@Param("username")String username);
 	
 	@Query(value="SELECT COUNT(*) FROM submission s JOIN user u on u.id=s.user_id "
 	    	+ "JOIN result r on r.id=s.result_id "
@@ -72,5 +74,7 @@ public interface ProblemRepository extends JpaRepository<Problem,Long>{
 	
 	@Query(value="SELECT id, name, timelimit FROM problem p where p.id=:problemID" , nativeQuery=true)
 	Problem getDTOProblemById(@Param("problemID")long problemID);
+	
+	
 	
 }

@@ -1,5 +1,7 @@
 package com.example.friojspring.Services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,11 @@ public class LanguageServiceImpl implements LanguageService {
 	@Override
 	public Language findById(Long id) {
 		return languageRepository.getOne(id);
+	}
+	
+	@Override
+	public List<Language> findAll() {
+		return languageRepository.findAll();
 	}
 	
 	@Override

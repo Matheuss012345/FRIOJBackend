@@ -2,17 +2,21 @@ package com.example.friojspring.Model;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.springframework.mock.web.MockMultipartFile;
@@ -40,39 +44,35 @@ public class Problem {
 	@Column(nullable=false)
 	private boolean hidden;
 	
-	@JsonIgnore
-	@Lob
-	@Column(nullable=false)
-	private byte[] pdf;
 	
 	@JsonIgnore
-	@Lob
-	@Column(nullable=false)
-	private byte[] input;
-	
-	@JsonIgnore
-	@Lob
-	@Column(nullable=false)
-	private byte[] output;
-	
-	@JsonIgnoreProperties("problems")
 	@ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(name = "problem_tag", joinColumns = 
     	@JoinColumn(name = "problem_id", referencedColumnName = "id"),
 			 inverseJoinColumns = 
 		 		@JoinColumn(name = "tag_id", referencedColumnName = "id"))
-	private Set<Tag> tags/*= new HashSet<>()*/;
+	private Set<Tag> tags;
 	
+	@JsonIgnore
+	@OneToMany(mappedBy = "problem",fetch=FetchType.LAZY,cascade = CascadeType.ALL,orphanRemoval = true)
+	private List<TestCase> testCases;
 	
+	@JsonIgnore
+	@OneToMany(mappedBy="problem",fetch=FetchType.LAZY,cascade = CascadeType.ALL,orphanRemoval = true)
+	private Set<ExerciseProblem> exerciseProblems;
 	
-	public Problem(String name, long timelimit, boolean hidden, byte[] pdf, byte[] input, byte[] output) {
+	public Problem(String name, long timelimit, boolean hidden) {
 		super();
 		this.name = name;
 		this.timelimit = timelimit;
 		this.hidden = hidden;
-		this.pdf = pdf;
-		this.input = input;
-		this.output = output;
+	}
+	
+	public Problem(String name, long timelimit) {
+		super();
+		this.name = name;
+		this.timelimit = timelimit;
+		this.hidden = false;
 	}
 
 
@@ -134,37 +134,19 @@ public class Problem {
 		tags.add(tag);
 	}
 
-	public byte[] getPdf() {
-		return pdf;
+	public List<TestCase> getTestCases() {
+		return testCases;
 	}
 
-	public void setPdf(byte[] pdf) {
-		this.pdf = pdf;
-	}
-
-	public byte[] getInput() {
-		return input;
-	}
-
-	public void setInput(byte[] input) {
-		this.input = input;
-	}
-
-	public byte[] getOutput() {
-		return output;
-	}
-
-	public void setOutput(byte[] output) {
-		this.output = output;
+	public void setTestCases(List<TestCase> testCases) {
+		this.testCases = testCases;
 	}
 	
-	public MultipartFile getMultipartPdf() {
-		String name="problem"+id+".pdf";
-		String contentType = "application/pdf";
-		MultipartFile result = new MockMultipartFile(name, name, contentType, pdf);
-		
-		return result;
-	}
+	
+	
+	
+	
+	
 	
 	
 	

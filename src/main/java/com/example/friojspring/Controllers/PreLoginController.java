@@ -34,13 +34,13 @@ public class PreLoginController {
 		if(emailTaken) {
 			throw new EmailTakenException();
 		}
-		
+		System.out.println("was here 1"+user);
 		try {
 			User createdUser = userService.save(user);
 		}catch(Exception e) {
 			throw e;
 		}
-		
+		System.out.println("was here 2");
 		return new ResponseEntity<Response>(new Response("User has been successfuly registered."),HttpStatus.OK);
 
 	}

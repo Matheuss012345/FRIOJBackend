@@ -1,7 +1,7 @@
 package com.example.friojspring.Services;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -13,13 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.friojspring.Model.Language;
 import com.example.friojspring.Model.Problem;
-import com.example.friojspring.Model.Result;
-import com.example.friojspring.Model.Submission;
-import com.example.friojspring.Model.Tag;
 import com.example.friojspring.Model.User;
-import com.example.friojspring.NonEntities.UserProblem;
 import com.example.friojspring.NonEntities.UserProblem;
 import com.example.friojspring.Repositories.ProblemRepository;
 import com.example.friojspring.Repositories.ResultRepository;
@@ -97,7 +92,11 @@ public class ProblemServiceImpl implements ProblemService{
 		//System.out.println("number of rows1="+rows.size());
 		
 		// 2 setting solved for users problems
-		Set<Long> solvedProblemIdsForUser = problemRepository.findIdsOfAllSolvedProblemsOfUser(user.getUsername());
+		Set<Long> solvedProblemIdsForUser = new HashSet<>();
+		for (BigInteger bi : problemRepository.findIdsOfAllSolvedProblemsOfUser(user.getUsername())) {
+			solvedProblemIdsForUser.add(bi.longValue());
+		};
+
 		for (UserProblem ptr : rows) {
 			if(solvedProblemIdsForUser.contains(ptr.getProblemId())) {
 				ptr.setSolved(true);

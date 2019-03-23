@@ -120,8 +120,8 @@ public class DataLoader implements CommandLineRunner {
     	p6=problemService.save(p6);
     	
     	//adding tags to problem
-    	
-    	User u = userService.getUserByUsername("Matheuss");
+    	*/
+    	/*User u = userService.getUserByUsername("Matheuss");
     	Problem p = problemService.findById(2);
     	Tag dptTag = tagService.findByName("Mathematicsu");
     	Language l = languageService.findByCode("C");
@@ -129,16 +129,16 @@ public class DataLoader implements CommandLineRunner {
     	p.addTag(dptTag);
     	problemService.save(p);
     	
-    	*/
+    	
     	
     	//submissions
-    	//Submission s1 = new Submission(p, u, "printout(done);", l, res, new Date());
-    	//s1=submissionService.save(s1);
+    	Submission s1 = new Submission(p, u, "printout(done);", l, res, new Date());
+    	s1=submissionService.save(s1);
     	
     	//Result AC = new Result("AC", "Accepted");
-    	//resultService.save(AC):
+    	//resultService.save(AC);*/
     	
-    	Problem pr = new Problem("A", 10l, true, new byte[] {(byte)'A'}, new byte[] {(byte)'A'}, new byte[] {(byte)'A'});
+    	Problem pr = new Problem("A", 10l, true);
     	problemService.save(pr);
  
     }
